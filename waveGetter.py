@@ -25,8 +25,8 @@ if not os.path.exists(filepath):
 os.chdir(filepath)
 
 #filename = 'wave.json'
+sample_num = int(input('Enter sample number:\n'))
 
-sample_num = 1
 
 try:
     #data structure: [{'pos': {'wave': [wave data ...], 'rate': sample rate}, 'neg': {'wave': [wave data ...], 'rate': sample rate}}]
