@@ -12,12 +12,12 @@ inst = rm.open_resource('TCPIP::10.0.1.52::INSTR')
 inst.write('DATA:SOURCE CH1')
 print(inst.query("*IDN?"))
 
-element = input('Enter element name:\n')
+element = raw_input('Enter element name:\n')
 filepath = os.path.join(os.getcwd(), element)
 if not os.path.exists(filepath):
     os.mkdir(filepath)
 
-spec = input('Enter specification:\n')
+spec = raw_input('Enter specification:\n')
 filepath = os.path.join(filepath, spec)
 if not os.path.exists(filepath):
     os.mkdir(filepath)
@@ -25,8 +25,7 @@ if not os.path.exists(filepath):
 os.chdir(filepath)
 
 #filename = 'wave.json'
-sample_num = int(input('Enter sample number:\n'))
-
+sample_num = int(raw_input('Enter sample number:\n'))
 
 try:
     #data structure: [{'pos': {'wave': [wave data ...], 'rate': sample rate}, 'neg': {'wave': [wave data ...], 'rate': sample rate}}]
@@ -35,33 +34,67 @@ try:
     first = []
     second = []
     for i in range(sample_num):
-        while input('Enter Y to gather positive first pin...') != 'Y':
+        while raw_input('Enter Y to gather positive first pin...'):
             pass
         #inst.write('DATA:SOURCE CH1')
-        pos_rate = inst.query('HORizontal:SAMPLERate?')
-        pos_first = inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        pos = {
+            'rate' : float(inst.query('HORizontal:SAMPLERate?')),
+            'volt' : float(inst.query('CH1:VOLts?')),
+            'pos' : inst.query("CH1:POSition?"),
+            'offset' : inst.query("CH1:OFFSet?"),
+            'deskew' : inst.query("CH1:DESKew?"),
+            'bandwidth' : inst.query("CH1:BANDWIDTH?"),
+            'probe' : inst.query("CH1:PRObe?"),
+            'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        }
         
-        #inst.write('DATA:SOURCE CH2')
-        while input('Enter Y to gather negative first pin...') != 'Y':
-            pass
-        neg_rate = inst.query('HORizontal:SAMPLERate?')
-        neg_first = inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
-        
-        first.append({'pos':{'wave': pos_first, 'rate': pos_rate}, 'neg':{'wave': neg_first, 'rate': neg_rate}})
 
-        while input('Enter Y to gather positive second pin...') != 'Y':
+        #inst.write('DATA:SOURCE CH2')
+        while raw_input('Enter Y to gather negative first pin...'):
+            pass
+        neg = {
+            'rate' : inst.query('HORizontal:SAMPLERate?'),
+            'volt' : inst.query('CH1:VOLts?'),
+            'pos' : inst.query("CH1:POSition?"),
+            'offset' : inst.query("CH1:OFFSet?"),
+            'deskew' : inst.query("CH1:DESKew?"),
+            'bandwidth' : inst.query("CH1:BANDWIDTH?"),
+            'probe' : inst.query("CH1:PRObe?"),
+            'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        }
+
+        first.append({'pos': pos, 'neg': neg})
+
+        while raw_input('Enter Y to gather positive second pin...'):
             pass
         #inst.write('DATA:SOURCE CH1')
-        pos_rate = inst.query('HORizontal:SAMPLERate?')
-        pos_second = inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        pos = {
+            'rate' : inst.query('HORizontal:SAMPLERate?'),
+            'volt' : inst.query('CH1:VOLts?'),
+            'pos' : inst.query("CH1:POSition?"),
+            'offset' : inst.query("CH1:OFFSet?"),
+            'deskew' : inst.query("CH1:DESKew?"),
+            'bandwidth' : inst.query("CH1:BANDWIDTH?"),
+            'probe' : inst.query("CH1:PRObe?"),
+            'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        }
 
         #inst.write('DATA:SOURCE CH2')
-        while input('Enter Y to gather negative second pin...') != 'Y':
+        while raw_input('Enter Y to gather negative second pin...'):
             pass
-        neg_rate = inst.query('HORizontal:SAMPLERate?')
-        neg_second = inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
-        second.append({'pos':{'wave': pos_second, 'rate': pos_rate}, 'neg':{'wave': neg_second, 'rate': neg_rate}})
+        neg = {
+            'rate' : inst.query('HORizontal:SAMPLERate?'),
+            'volt' : inst.query('CH1:VOLts?'),
+            'pos' : inst.query("CH1:POSition?"),
+            'offset' : inst.query("CH1:OFFSet?"),
+            'deskew' : inst.query("CH1:DESKew?"),
+            'bandwidth' : inst.query("CH1:BANDWIDTH?"),
+            'probe' : inst.query("CH1:PRObe?"),
+            'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
+        }
+        second.append({'pos': pos, 'neg': neg})
         #print(valuesi)
+        print second
     
     with open('first_pin.json', 'w') as f:
         print(first)
@@ -70,10 +103,6 @@ try:
     with open('second_pin.json', 'w') as f:
         print(second)
         json.dump(second, f)
-
-
-        
-        
 
 except KeyboardInterrupt:
     pass
