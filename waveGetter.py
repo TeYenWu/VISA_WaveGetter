@@ -8,7 +8,7 @@ import os
 
 rm = visa.ResourceManager()
 rm.list_resources()
-inst = rm.open_resource('TCPIP::10.0.1.52::INSTR')
+inst = rm.open_resource('TCPIP::10.0.1.47::INSTR')
 inst.write('DATA:SOURCE CH1')
 print(inst.query("*IDN?"))
 
