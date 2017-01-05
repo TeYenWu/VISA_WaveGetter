@@ -12,6 +12,10 @@ inst = rm.open_resource('TCPIP::10.0.1.52::INSTR')
 inst.write('DATA:SOURCE CH1')
 print(inst.query("*IDN?"))
 
+inst.write('HORizontal:RECOrdlength 20000');
+inst.write('DATa:STARt 1');
+inst.write('DATa:STOP 20000');
+
 element = raw_input('Enter element name:\n')
 filepath = os.path.join(os.getcwd(), element)
 if not os.path.exists(filepath):
