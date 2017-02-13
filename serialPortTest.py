@@ -11,6 +11,8 @@ def main(argv):
         print p
     s = serial.Serial("/dev/cu.usbserial", 115200, timeout=10, write_timeout=0)
     waves = []
+    # 0x11 -> control mux (0x02 output wave to target row, 0x03 connect ground to target row, 0x01 connect adc to target row)
+    # 0x23 -> read wave (40000byte, 2 byte is int_16)
     try:
         # print(s.readline())
         sum_value = 0;
@@ -33,7 +35,7 @@ def main(argv):
                     s.write([0x0023])
                     waves.append(s.read(size=40000))
 
-        
+
 
         with open("result.json", 'wb') as output:
             output.write(json.dumps(res, indent=4))
