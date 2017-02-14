@@ -3,6 +3,7 @@ import sys
 import serial.tools.list_ports
 import struct
 import json
+import matplotlib.pyplot as plt
 
 
 def main(argv):
@@ -21,24 +22,31 @@ def main(argv):
             s.write([0x11, 0x02, chr(i)])
             result = s.read(size=1)
             if result != 1:
-                break;
+                print(result)
+                break
             for j in xrange(6):
-                if result != 1:
-                break;
+                if result != 1 or i == j:
+                    print("j")
+                    break
                 s.write([0x11, 0x03, chr(j)])
                 result = s.read(size=1)
                 for k in xrange(6):
-                    if result != 1:
-                    break;
+                    if result != 1 or j == k:
+                        print("k")
+                        break
                     s.write([0x11, 0x01, chr(k)])
                     result = s.read(size=1)
                     s.write([0x0023])
-                    waves.append(s.read(size=40000))
+                    for n in xrange(200000): 
+                        v = int(256*ord(s.read(size=1))+ord(s.read(size=1)))
+                        Vvalue = float((v-2048)*0.00244140625)
+                        print(Vvalue)
+                        waves.append(Vvalue)
 
 
 
         with open("result.json", 'wb') as output:
-            output.write(json.dumps(res, indent=4))
+            output.write(json.dumps(waves, indent=4))
         # print(((num-2048)*0.00244140625))
         # data = s.read(size=2)
         # result=struct.pack('>h', data)
@@ -48,6 +56,10 @@ def main(argv):
     except Exception as e:
         print e
         pass
+
+    plt.plot(waves)
+    plt.ylabel('some numbers')
+    plt.show()
    
 def from_bytes (data, big_endian = False):
     if isinstance(data, str):
