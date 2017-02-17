@@ -7,6 +7,9 @@ import json
 import os
 import matplotlib.pyplot as plt
 import argparse
+import serial
+import serial.tools.list_ports
+from serialPortTest import from_bytes
 
 parser = argparse.ArgumentParser(description="Argument parser")
 parser.add_argument('--element', type=str, help='element name')
@@ -19,7 +22,7 @@ parser.add_argument('--start_test_pin', type=int, default=1, help='test pin to s
 
 args = parser.parse_args()
 
-
+'''
 rm = visa.ResourceManager()
 rm.list_resources()
 inst = rm.open_resource('TCPIP::10.0.1.47::INSTR')
@@ -29,6 +32,13 @@ print(inst.query("*IDN?"))
 inst.write('HORizontal:RECOrdlength 20000');
 inst.write('DATa:STARt 1');
 inst.write('DATa:STOP 20000');
+'''
+
+ports = list(serial.tools.list_ports.comports())
+s = serial.Serial("/dev/cu.SLAB_USBtoUART", 115200, parity=serial.PARITY_EVEN)
+s.flushInput()
+s.flushOutput()
+
 
 filepath = os.path.join(os.getcwd(), args.element)
 if not os.path.exists(filepath):
@@ -44,50 +54,90 @@ os.chdir(filepath)
 
 try:
     #data structure: [{'pos': {'wave': [wave data ...], 'rate': sample rate}, 'neg': {'wave': [wave data ...], 'rate': sample rate}}]
+    '''
     if os.path.exists(os.path.join(filepath, 'data.json')):
         with open('data.json', 'r') as f:
             data = json.load(f)
     else:
         data = []
+    '''
+    data = []
 
     started = False
-    for sample_id in range(args.sample_num):
+    pin_list = [0, 1, 2, 3, 11, 10, 9, 8]
+    for sample_id in pin_list:
+        while raw_input('press enter to get element data...'):
+            pass
+
+        '''
         if not started and len(data) > 0:
             sample_data = data[-1]
         else:
             sample_data = {}
-        
-        for i in range(args.pin_num):
-            for j in range(args.pin_num - i - 1):
-                for k in range(args.pin_num):
-                    test_pin = k + 1
-                    pos_pin = i + 1
-                    neg_pin = i + j + 2
-                    if test_pin == neg_pin:
+        '''
+        sample_data = {}
+
+        for i in pin_list:
+            s.write([0x11, 0x01, chr(i), 0x00])
+            result = s.read(size=1)
+            if from_bytes(result) != 1:
+                break
+
+            for j in pin_list:
+                if i >= j:
+                    continue
+                s.write([0x11, 0x02, chr(j), 0x00])
+                result = s.read(size=1)
+                if from_bytes(result) != 1:
+                    break
+                for k in pin_list:
+                    #test_pin = k + 1
+                    #pos_pin = i + 1
+                    #neg_pin = i + j + 2
+                    if k == j:
                         continue
+
+                    s.write([0x11, 0x00, chr(k), 0x00])
+                    result = s.read(size=1)
+                    if from_bytes(result) != 1:
+                        break
+                    s.flushInput()
+                    s.flushOutput()
+                    wave = []
+                    s.write([0x23])
+                    
+                    '''
                     if not started:
                         if pos_pin < args.start_pos_pin or neg_pin < args.start_neg_pin or test_pin < args.start_test_pin:
                             continue
                         started = True
-    
-                    print("pos_pin: %d, neg_pin: %d, test_pin: %d" % (pos_pin, neg_pin, test_pin))
-                    while input('Enter Y to gather wave data...') == 'Y':
-                        pass
-                
-                    wave_data = {
-                        'rate' : float(inst.query('HORizontal:SAMPLERate?')),
-                        'volt' : float(inst.query('CH1:VOLts?')),
-                        'pos' : inst.query("CH1:POSition?"),
-                        'offset' : inst.query("CH1:OFFSet?"),
-                        'deskew' : inst.query("CH1:DESKew?"),
-                        'bandwidth' : inst.query("CH1:BANDWIDTH?"),
-                        'probe' : inst.query("CH1:PRObe?"),
-                        'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True) 
-                    }
+                    '''
 
-                    sample_data['pos' + str(pos_pin) + '_neg' + str(neg_pin) + '_test' + str(test_pin)] = wave_data
-                    #plt.plot(wave_data['wave'])
-                    #plt.show()
+                    print("pos_pin: %d, neg_pin: %d, test_pin: %d" % (i, j, k))
+                    
+                    for byte_n in xrange(2000):
+                        #print('in_waiting:' + str(s.in_waiting)) 
+                        data = s.read(size=2)
+                        v = from_bytes(data)
+                        Vvalue = float((v-2048)*0.00244140625)
+                        wave.append(Vvalue)
+                        #print(byte_n) 
+                    
+                    wave_data = {
+                        'rate' : 100000,
+                        'volt' : 40,
+                        #'pos' : inst.query("CH1:POSition?"),
+                        #'offset' : inst.query("CH1:OFFSet?"),
+                        #'deskew' : inst.query("CH1:DESKew?"),
+                        #'bandwidth' : inst.query("CH1:BANDWIDTH?"),
+                        #'probe' : inst.query("CH1:PRObe?"),
+                        'wave' : wave 
+                    }
+                    #print(wave_data)
+                    #print('%d, %d, %d' % )
+                    sample_data['pos' + str(pin_list.index(i) + 1) + '_neg' + str(pin_list.index(j) + 1) + '_test' + str(pin_list.index(k) + 1)] = wave_data
+                    plt.plot(wave_data['wave'])
+                    plt.show()
 
         data.append(sample_data)
 

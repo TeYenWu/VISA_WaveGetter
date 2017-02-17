@@ -76,14 +76,15 @@ def two_pin_discriminator(data):
 
 def caculate_C(R, data, MaxV):
     wave = data['wave']
-    sampleTime = 1 / data['rate']
+    sampleTime = 1.0 / data['rate']
     sampleUnit = data['volt'] / 40
     halfV = MaxV / 2;
     #caculate t
     start = None
     end = None
     for i in range(len(wave)):
-        if abs(wave[i] - (-MaxV / sampleUnit)) <= 1:
+        print(wave[i] * sampleUnit)
+        if abs((wave[i] * sampleUnit) + MaxV) <= 0.05:
             print('find start')
             start = i
             continue
@@ -94,10 +95,11 @@ def caculate_C(R, data, MaxV):
             print('find end')
             end = i
             break
-
+    print('start: %d, end: %d' % (start, end))
+    print('sample Time: %f' % sampleTime)
     t = (end - start) * sampleTime
     print('t: %f' % t)
-    return -t / (log(1 / 2) * R)
+    return -t / (log(1.0 / 2) * R)
 
 def caculate_L(R, t):
     return -(log(1 / 2) * R) / t

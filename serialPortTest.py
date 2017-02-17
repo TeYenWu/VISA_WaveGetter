@@ -5,7 +5,7 @@ import struct
 import json
 import matplotlib.pyplot as plt
 import time
-
+import circuitTester as ct
 
 def main(argv):
     ports = list(serial.tools.list_ports.comports())
@@ -26,20 +26,22 @@ def main(argv):
     try:
         # print(s.readline())
         sum_value = 0;
-
-        for i in xrange(2):
+        
+        pin_list = [0, 1, 2, 3, 11, 10, 9, 8]
+        for i in pin_list:
             s.write([0x11, 0x01, chr(i), 0x00])
             result = s.read(size=1)
             if from_bytes(result) != 1: 
                 break
-            for j in xrange(2):
+            for j in pin_list:
                 if i == j:
                     continue
                 s.write([0x11, 0x02, chr(j), 0x00])
                 result = s.read(size=1)
                 if from_bytes(result) != 1:  
                     break
-                for k in xrange(2):
+                for k in pin_list:
+                    print('%d, %d, %d' % (i, j, k))
                     if j == k: 
                         continue
                     s.write([0x11, 0x00, chr(k), 0x00])
@@ -49,17 +51,27 @@ def main(argv):
                     s.flushInput()
                     s.flushOutput()
                     wave = []
-                    s.write([0x23])
+                    for count in range(1):
+                        s.write([0x23])
                     
-                    for byte_n in xrange(2000):
-                        print('in_waiting:' + str(s.in_waiting))
-                        data = s.read(size=2)
-                        v = from_bytes(data)
-                        Vvalue = float((v-2048)*0.00244140625)                          
-                        wave.append(Vvalue)
-                        print(byte_n)
+                        for byte_n in xrange(2000):
+                            #print('in_waiting:' + str(s.in_waiting))
+                            data = s.read(size=2)
+                            v = from_bytes(data)
+                            Vvalue = float((v-2048)*0.00244140625)                          
+                            wave.append(Vvalue)
+                            #print(byte_n)
 
+                    data = {
+                        'wave': wave,
+                        'rate': 100000,
+                        'volt': 40,
+                    }
+                    #print(ct.two_pin_discriminator(data))
+                    #print(ct.caculate_C(50, data, 0.5))
+                    
                     plt.plot(wave)
+
                     # plt.ylabel('some numbers')
                     # plt.show()
                     plt.show()
