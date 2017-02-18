@@ -29,25 +29,19 @@ def main(argv):
         
         pin_list = [0, 1, 2, 3, 11, 10, 9, 8]
         for i in pin_list:
-            s.write([0x11, 0x01, chr(i), 0x00])
-            result = s.read(size=1)
-            if from_bytes(result) != 1: 
-                break
+            s.write([0x11, 0x01, chr(i)])
+            result = s.read(size=2)
             for j in pin_list:
                 if i == j:
                     continue
-                s.write([0x11, 0x02, chr(j), 0x00])
-                result = s.read(size=1)
-                if from_bytes(result) != 1:  
-                    break
+                s.write([0x11, 0x02, chr(j)])
+                result = s.read(size=2)
                 for k in pin_list:
                     print('%d, %d, %d' % (i, j, k))
                     if j == k: 
                         continue
-                    s.write([0x11, 0x00, chr(k), 0x00])
-                    result = s.read(size=1)
-                    if from_bytes(result) != 1: 
-                        break
+                    s.write([0x11, 0x00, chr(k)])
+                    result = s.read(size=2)
                     s.flushInput()
                     s.flushOutput()
                     wave = []
@@ -64,7 +58,7 @@ def main(argv):
 
                     data = {
                         'wave': wave,
-                        'rate': 100000,
+                        'rate': 80000,
                         'volt': 40,
                     }
                     #print(ct.two_pin_discriminator(data))
@@ -77,7 +71,6 @@ def main(argv):
                     plt.show()
                     # print wave
                     waves.append(wave)
-
 
 
         with open("result.json", 'wb') as output:

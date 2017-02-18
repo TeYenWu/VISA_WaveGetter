@@ -65,9 +65,9 @@ try:
 
     started = False
     pin_list = [0, 1, 2, 3, 11, 10, 9, 8]
-    for sample_id in pin_list:
-        while raw_input('press enter to get element data...'):
-            pass
+    for sample_id in range(args.sample_num):
+        #while raw_input('press enter to get element data...'):
+            #pass
 
         '''
         if not started and len(data) > 0:
@@ -78,29 +78,25 @@ try:
         sample_data = {}
 
         for i in pin_list:
-            s.write([0x11, 0x01, chr(i), 0x00])
-            result = s.read(size=1)
-            if from_bytes(result) != 1:
-                break
+            s.write([0x11, 0x01, chr(i)])
+            result = s.read(size=2)
 
             for j in pin_list:
-                if i >= j:
+                if pin_list.index(i) >= pin_list.index(j):
+                    print('j contine')
                     continue
-                s.write([0x11, 0x02, chr(j), 0x00])
-                result = s.read(size=1)
-                if from_bytes(result) != 1:
-                    break
+                s.write([0x11, 0x02, chr(j)])
+                result = s.read(size=2)
                 for k in pin_list:
                     #test_pin = k + 1
                     #pos_pin = i + 1
                     #neg_pin = i + j + 2
-                    if k == j:
+                    if pin_list.index(k) == pin_list.index(j):
+                        print('k continue')
                         continue
 
-                    s.write([0x11, 0x00, chr(k), 0x00])
-                    result = s.read(size=1)
-                    if from_bytes(result) != 1:
-                        break
+                    s.write([0x11, 0x00, chr(k)])
+                    result = s.read(size=2)
                     s.flushInput()
                     s.flushOutput()
                     wave = []
@@ -113,19 +109,19 @@ try:
                         started = True
                     '''
 
-                    print("pos_pin: %d, neg_pin: %d, test_pin: %d" % (i, j, k))
+                    #print("pos_pin: %d, neg_pin: %d, test_pin: %d" % (i, j, k))
                     
                     for byte_n in xrange(2000):
                         #print('in_waiting:' + str(s.in_waiting)) 
-                        data = s.read(size=2)
-                        v = from_bytes(data)
+                        point = s.read(size=2)
+                        v = from_bytes(point)
                         Vvalue = float((v-2048)*0.00244140625)
                         wave.append(Vvalue)
                         #print(byte_n) 
                     
                     wave_data = {
-                        'rate' : 100000,
-                        'volt' : 40,
+                        'rate' : 80000,
+                        'volt' : 1,
                         #'pos' : inst.query("CH1:POSition?"),
                         #'offset' : inst.query("CH1:OFFSet?"),
                         #'deskew' : inst.query("CH1:DESKew?"),
@@ -135,9 +131,10 @@ try:
                     }
                     #print(wave_data)
                     #print('%d, %d, %d' % )
+                    print('pos' + str(pin_list.index(i) + 1) + '_neg' + str(pin_list.index(j) + 1) + '_test' + str(pin_list.index(k) + 1))
                     sample_data['pos' + str(pin_list.index(i) + 1) + '_neg' + str(pin_list.index(j) + 1) + '_test' + str(pin_list.index(k) + 1)] = wave_data
-                    plt.plot(wave_data['wave'])
-                    plt.show()
+                    #plt.plot(wave_data['wave'])
+                    #plt.show()
 
         data.append(sample_data)
 
