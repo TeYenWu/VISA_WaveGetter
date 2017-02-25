@@ -1,6 +1,7 @@
 import json
 import argparse
-
+from scipy import signal
+import numpy as np
 import matplotlib.pyplot as plt
 
 from math import log
@@ -78,13 +79,19 @@ def caculate_C(R, data, MaxV):
     wave = data['wave']
     sampleTime = 1.0 / data['rate']
     sampleUnit = data['volt']
-    halfV = MaxV / 2
+    halfV = float(MaxV) / 2
+    print(halfV)
     #caculate t
     start = None
     end = None
+    
+    #print('peak: ')
+    #print(signal.find_peaks_cwt(data, np.arange(1, 10)))
+
     for i in range(len(wave)):
         print(wave[i] * sampleUnit)
-        if abs((wave[i] * sampleUnit) + MaxV) <= 0.05:
+        #print(abs((wave[i] * sampleUnit) + halfV))
+        if abs((wave[i] * sampleUnit) + halfV) <= 0.05:
             print('find start')
             start = i
             continue
@@ -95,7 +102,9 @@ def caculate_C(R, data, MaxV):
             print('find end')
             end = i
             break
+    plt.plot(wave[start-10:end+10])
     print('start: %d, end: %d' % (start, end))
+    print('start value: %f, end value: %f' % (wave[start], wave[end]))
     print('sample Time: %f' % sampleTime)
     t = (end - start) * sampleTime
     print('t: %f' % t)

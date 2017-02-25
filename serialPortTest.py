@@ -27,7 +27,7 @@ def main(argv):
         # print(s.readline())
         sum_value = 0;
         
-        pin_list = [0, 1, 2, 3, 11, 10, 9, 8]
+        pin_list = [0, 8]
         for i in pin_list:
             s.write([0x11, 0x01, chr(i)])
             result = s.read(size=2)
@@ -59,16 +59,20 @@ def main(argv):
                     data = {
                         'wave': wave,
                         'rate': 80000,
-                        'volt': 40,
+                        'volt': 1,
                     }
-                    #print(ct.two_pin_discriminator(data))
-                    #print(ct.caculate_C(50, data, 0.5))
                     
+
                     plt.plot(wave)
+                    plt.show()
+                    print(ct.two_pin_discriminator(data))
+                    print(ct.caculate_C(125, data, 1))
+                    
+                    #plt.plot(wave)
 
                     # plt.ylabel('some numbers')
                     # plt.show()
-                    plt.show()
+                    #plt.show()
                     # print wave
                     waves.append(wave)
 
