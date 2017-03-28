@@ -2,7 +2,8 @@ import json
 import matplotlib.pyplot as plt
 import scipy.fftpack
 import numpy as np
-from scipy.fftpack import dct
+from scipy.fftpack import fft, dct
+#from util import smooth
 
 def wave_ceptrum(numcep, waves, N, sample_rate):
     pow_spec = power_spectrum(waves, n=N)
@@ -40,9 +41,18 @@ def filterbank(filt_num, N, sample_rate=80000, low_freq=0, high_freq=None):
     return fbank
 
 def get_wave_feature(waves, sample_rate, N):
-    cep =  wave_ceptrum(13, waves, N, sample_rate)
+    #waves = smooth(waves)
+    cep =  wave_ceptrum(26, waves, N, sample_rate)
     features = np.concatenate((cep, np.diff(cep, n=1), np.diff(cep, n=2)), axis=0)
-
+    #features = np.array([])
+    #waves = smooth(waves)
+    #f = np.abs(fft(waves))
+    features = np.append(features, np.mean(waves))
+    features = np.append(features, np.std(waves))
+    features = np.append(features, np.var(waves))
+    features = np.append(features, np.amax(waves))
+    features = np.append(features, np.amin(waves))
+    features = np.append(features, np.median(waves))
     return features
 
 

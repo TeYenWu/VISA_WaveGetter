@@ -1,20 +1,23 @@
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 from sklearn.externals import joblib
 from math import ceil
 import numpy as np
+import matplotlib.pyplot as plt
 import pickle
 import json
 import os
+from scipy.fftpack import fft
 
 from feature_extraction import get_wave_feature
 
-class SVM():
+class RF():
     def __init__(self, model_dir='Model', data_dir='data', preTrained=False):
         self.model_dir = model_dir
         
         #SVM hyperparameter
         self.C = 1.0
-        self.kernel = 'rbf'
+        self.kernel = 'precomputed'
         self.degree = 3
         self.gamma = 'auto'
         self.coef0 = 0.0
@@ -23,16 +26,15 @@ class SVM():
 
         if not preTrained:
             #load data and train
-            self.model = svm.SVC(C=self.C, 
-                                 kernel=self.kernel, 
-                                 degree=self.degree,
-                                 gamma=self.gamma,
-                                 coef0=self.coef0,
-                                 tol=self.tol,
-                                 max_iter=self.max_iter)
-            
+            #self.model = svm.SVC(C=self.C, 
+            #                     kernel=self.kernel, 
+            #                     degree=self.degree,
+            #                     gamma=self.gamma,
+            #                     coef0=self.coef0,
+            #                     tol=self.tol,
+            #                     max_iter=self.max_iter)
+            self.model = RandomForestClassifier(50)
             self.train_X, self.train_y, self.dev_X, self.dev_y, self.label_list, self.feature_order = self.data_proccess(data_dir)
-            print(self.train_y)
             self.train()
 
         else:
@@ -45,27 +47,36 @@ class SVM():
         
         sub_dirs = [o for o in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir,o))] 
         for idx in range(len(sub_dirs)):
-            label_list.append(sub_dirs[idx])
+            #label = sub_dirs[idx]
+            label = sub_dirs[idx].split('_')[0]
+            if label not in label_list:
+                label_list.append(label)
+
+            label_id = label_list.index(label)
+            #label_list.append(sub_dirs[idx])
             
             data = json.load(open(os.path.join(data_dir, sub_dirs[idx], 'data.json'), 'r'))
             
-            dev_size = ceil(float(len(data)) * dev_portion)
-            order = ['pos1_neg2_test1', 'pos1_neg2_test3', 'pos1_neg3_test1', 'pos1_neg3_test2', 'pos2_neg3_test1', 'pos2_neg3_test2']
-            #order = ['pos1_neg2_test1']
 
+            dev_size = ceil(float(len(data)) * dev_portion)
+            #order = ['pos1_neg2_test1', 'pos1_neg2_test3', 'pos1_neg3_test1', 'pos1_neg3_test2', 'pos2_neg3_test1', 'pos2_neg3_test2']
+            #order = ['pos1_neg2_test1', 'pos1_neg2_test2']
+            order = data[0].keys() 
+            print('data size of %s: %d' % (sub_dirs[idx], len(data)))
             for d in data:
+                
                 features = np.array([])      
                 for o in order:
-                    features = np.concatenate((features, get_wave_feature(np.array(d[o]['wave']), 80000, 2000)), axis=0)# get wave feature not done
+                    features = np.concatenate((features, get_wave_feature(np.array(d[o]['wave']), 80000, 2000)), axis=0)
 
                 #get data to validation set
                 if dev_size > 0:
                     dev_X.append(features)
-                    dev_y.append(idx)
+                    dev_y.append(label_id)
                     dev_size -= 1
                 else:
                     train_X.append(features)
-                    train_y.append(idx)
+                    train_y.append(label_id)
         
         return np.array(train_X), np.array(train_y), np.array(dev_X), np.array(dev_y), label_list, order
 
@@ -94,7 +105,7 @@ class SVM():
         
         #dump model to model dir
         if not os.path.exists(os.path.join(os.getcwd(), self.model_dir)):
-            print('%s doesn\'t exist, creating...')
+            print('%s doesn\'t exist, creating...' % self.model_dir)
             os.mkdir(self.model_dir)
 
         joblib.dump(self.model, os.path.join(self.model_dir, 'model.pkl'))
@@ -107,10 +118,26 @@ class SVM():
         for o in self.feature_order:
             test_X = np.concatenate((test_X, get_wave_feature(np.array(test_waves[o]['wave']), 80000, 2000)), axis=0)
             
-        return self.label_list[self.model.predict(test_X)]
+        #print(self.model.predict(test_X))
+        return self.label_list[self.model.predict(np.array([test_X]))[0]]
 
 if __name__ == '__main__':
-    SVM(model_dir='testModel', data_dir='3pin')
-
+    model = RF(model_dir='2pin_Model', data_dir='2-pin', preTrained=False)
+    '''
+    sub_dirs = [o for o in os.listdir('2-pin_test') if os.path.isdir(os.path.join('2-pin_test',o))]
+    error = 0
+    total = 0
+    for sub_dir in sub_dirs:
+        data = json.load(open(os.path.join('2-pin_test', sub_dir, 'data.json'), 'r'))
+        for d in data:
+            predict = model.test(d)
+            #print('model predict %s: %s' % (sub_dir, predict))
+            total += 1
+            if sub_dir.split('_')[0] != predict:    
+                print('model predict %s: %s' % (sub_dir, predict))
+                error += 1
+    
+    print('test accurency: %f' % (float(total - error) / total))
+    '''
 
 
