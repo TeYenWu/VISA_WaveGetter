@@ -5,9 +5,14 @@ import time
 import sys
 import json
 import os
+import matplotlib.pyplot as plt
 
+from testing import two_pin_discriminator
+
+print('hi')
 rm = visa.ResourceManager()
 rm.list_resources()
+print('hihi')
 inst = rm.open_resource('TCPIP::10.0.1.47::INSTR')
 inst.write('DATA:SOURCE CH1')
 print(inst.query("*IDN?"))
@@ -16,12 +21,12 @@ inst.write('HORizontal:RECOrdlength 20000');
 inst.write('DATa:STARt 1');
 inst.write('DATa:STOP 20000');
 
-element = raw_input('Enter element name:\n')
+element = input('Enter element name:\n')
 filepath = os.path.join(os.getcwd(), element)
 if not os.path.exists(filepath):
     os.mkdir(filepath)
 
-spec = raw_input('Enter specification:\n')
+spec = input('Enter specification:\n')
 filepath = os.path.join(filepath, spec)
 if not os.path.exists(filepath):
     os.mkdir(filepath)
@@ -29,7 +34,7 @@ if not os.path.exists(filepath):
 os.chdir(filepath)
 
 #filename = 'wave.json'
-sample_num = int(raw_input('Enter sample number:\n'))
+sample_num = int(input('Enter sample number:\n'))
 
 try:
     #data structure: [{'pos': {'wave': [wave data ...], 'rate': sample rate}, 'neg': {'wave': [wave data ...], 'rate': sample rate}}]
@@ -38,7 +43,7 @@ try:
     first = []
     second = []
     for i in range(sample_num):
-        while raw_input('Enter Y to gather positive first pin...'):
+        while input('Enter Y to gather positive first pin...'):
             pass
         #inst.write('DATA:SOURCE CH1')
         pos = {
@@ -51,10 +56,20 @@ try:
             'probe' : inst.query("CH1:PRObe?"),
             'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
         }
-        
+        print('rate: ' + str(pos['rate']))
+        print('volt: ' + str(pos['volt']))
+        print('pos: ' + str(pos['pos']))
+        print('offset: ' + str(pos['offset']))
+        print('deskew: ' + str(pos['deskew']))
+        print('bandwidth: ' + str(pos['bandwidth']))
+        print('probe: ' + str(pos['probe']))
+        print(len(pos['wave']))
+        #plt.plot(pos['wave'])
+        #plt.show()
+        print(two_pin_discriminator(pos))
 
         #inst.write('DATA:SOURCE CH2')
-        while raw_input('Enter Y to gather negative first pin...'):
+        while input('Enter Y to gather negative first pin...'):
             pass
         neg = {
             'rate' : inst.query('HORizontal:SAMPLERate?'),
@@ -66,10 +81,12 @@ try:
             'probe' : inst.query("CH1:PRObe?"),
             'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
         }
-
+        #plt.plot(neg['wave'])
+        #plt.show()
+        print(two_pin_discriminator(neg))
         first.append({'pos': pos, 'neg': neg})
 
-        while raw_input('Enter Y to gather positive second pin...'):
+        while input('Enter Y to gather positive second pin...'):
             pass
         #inst.write('DATA:SOURCE CH1')
         pos = {
@@ -82,9 +99,11 @@ try:
             'probe' : inst.query("CH1:PRObe?"),
             'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
         }
-
+        #plt.plot(pos['wave'])
+        #plt.show()
+        print(two_pin_discriminator(pos))
         #inst.write('DATA:SOURCE CH2')
-        while raw_input('Enter Y to gather negative second pin...'):
+        while input('Enter Y to gather negative second pin...'):
             pass
         neg = {
             'rate' : inst.query('HORizontal:SAMPLERate?'),
@@ -96,16 +115,19 @@ try:
             'probe' : inst.query("CH1:PRObe?"),
             'wave' : inst.query_binary_values('CURVe?', datatype='b', is_big_endian=True)
         }
+        #plt.plot(neg['wave'])
+        #plt.show()
+        print(two_pin_discriminator(neg))
         second.append({'pos': pos, 'neg': neg})
         #print(valuesi)
-        print second
+        #print(second)
     
     with open('first_pin.json', 'w') as f:
-        print(first)
+        #print(first)
         json.dump(first, f)
 
     with open('second_pin.json', 'w') as f:
-        print(second)
+        #print(second)
         json.dump(second, f)
 
 except KeyboardInterrupt:

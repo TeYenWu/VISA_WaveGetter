@@ -5,7 +5,9 @@ import struct
 import json
 import matplotlib.pyplot as plt
 import time
-import circuitTester as ct
+
+from util import from_bytes
+#import circuitTester as ct
 
 def main(argv):
     ports = list(serial.tools.list_ports.comports())
@@ -91,14 +93,6 @@ def main(argv):
 
     
    
-def from_bytes (data, big_endian = False):
-    data = bytearray(data)
-    if big_endian:
-        data = reversed(data)   
-    num = 0
-    for offset, byte in enumerate(data):
-        num += byte << (offset * 8)
-    return num
 
 if __name__ == "__main__":
     main(sys.argv) 
