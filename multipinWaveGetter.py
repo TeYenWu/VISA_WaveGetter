@@ -97,7 +97,7 @@ try:
                         #print('k continue')
                 #       continue
                     if j - i == 8:
-                        s.write([0x11, 0x00, chr(i)])
+                        s.write([0x11, 0x00, chr(k)])
                         result = s.read(size=2)
                         s.flushInput()
                         s.flushOutput()

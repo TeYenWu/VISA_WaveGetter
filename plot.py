@@ -1,18 +1,27 @@
 import matplotlib.pyplot as plt
 import json
-import os 
+import os
 import sys
-count = 0
-for root, dirs, files in os.walk(os.getcwd()):
-	if count == 0:
-		continue
-	a = open(root + '/data.json','r')
-	data = json.load(a)
-	for index in range(5):
 
-		keys = data[index].keys()
-		for key in keys:
-			plt.plot(data[index][key]['wave'])
-			plt.savefig(key)
-			plt.clf()
-	count+=1		
+#filepath = os.path.join(os.getcwd(), args.element)
+#if not os.path.exists(filepath):
+#    os.mkdir(filepath)
+
+#os.chdir(filepath)
+sub_dirs = [o for o in os.listdir(sys.argv[1]) if os.path.isdir(os.path.join(sys.argv[1],o))]
+
+os.chdir(os.path.join(os.getcwd(), sys.argv[1]))
+
+for sub_dir in sub_dirs:
+    os.chdir(os.path.join(os.getcwd(), sub_dir))
+    a = open('data.json','r')
+    data = json.load(a)
+    
+    keys = data[0].keys()
+    for key in keys:
+        plt.plot(data[0][key]['wave'])
+        plt.axis([0, 2000, -0.5, 0.5])
+        plt.savefig(key)
+        plt.clf()
+    
+    os.chdir('../')
