@@ -20,7 +20,7 @@ for sub_dir in sub_dirs:
     keys = data[0].keys()
     for key in keys:
         plt.plot(data[0][key]['wave'])
-        plt.axis([0, 2000, -0.5, 0.5])
+        plt.axis([0, 2000, -2, 2])
         plt.savefig(key)
         plt.clf()
     
