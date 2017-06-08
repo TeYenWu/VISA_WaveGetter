@@ -101,10 +101,10 @@ class circuit_tester():
                 pin_matrix = self.PLS_scan()
                 os.write(STDOUT, json.dumps(pin_matrix))
             elif command[0] == "pin_list":
-                pin_list = json.loads(command[1])
+                pin_list = map(int, command[1].split(','))
                 element, value = self.test(pin_list)
                 os.write(STDERR, "CT: %s %s" % (element, value)) if value != None else os.write(2, "CT: %s" % element)
-                os.write(STDOUT, "%s, %s" % (element, value))
+                os.write(STDOUT, "%s,%s" % (element, value))
             elif command[0] == "end":
                 os.write(STDOUT, "CircuitTester closed")
                 break
