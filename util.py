@@ -93,7 +93,7 @@ def get_waves_data(s, pin_list):
                 s.flushInput()
                 s.flushOutput()
                 wave = []
-                s.write([0x25])
+                s.write([0x23])
                 
                 for byte_n in xrange(2000):
                     point = s.read(size=2)

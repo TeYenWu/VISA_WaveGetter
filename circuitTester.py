@@ -96,10 +96,10 @@ class circuit_tester():
         
         while True:
             command = get_command()
-
+            os.write(STDERR, "Command received: %s" % (command[0]))
             if command[0] == "scan":
-                pin_matrix = self.PLS_scan()
-                os.write(STDOUT, json.dumps(pin_matrix))
+                pin_voltage = self.PLS_scan()
+                os.write(STDOUT, pin_voltage)
             elif command[0] == "pin_list":
                 pin_list = map(int, command[1].split(','))
                 element, value = self.test(pin_list)
