@@ -58,15 +58,33 @@ def smooth(x,window_len=11,window='hanning'):
     y=np.convolve(w/w.sum(),s,mode='valid')
     return y
 
+def get_pin_voltage(s):
+    values = []
+    s.write([0x24])
+    
+    for row in range(80):
+        result = s.read(size=2)
+        values.append(int((result[0] & 0x00FF) | ((result[1] & 0x000F) << 8)))
+
+    return values
+
+
 def get_waves_data(s, pin_list):
     sample_data = {}
-        
+    
     for i in pin_list:
         s.write([0x11, 0x01, chr(i)])
+        print('pos: %d' % i)
         result = s.read(size=2)
         for j in pin_list:
             if pin_list.index(i) >= pin_list.index(j):
                 continue
+            if len(pin_list) > 3 and (pin_list.index(i) + pin_list.index(j)) != (len(pin_list) - 1):
+                continue
+            #print(i)
+            #print(j)
+            print('pos: %d' % i)
+            
             s.write([0x11, 0x02, chr(j)])
             result = s.read(size=2)
             for k in pin_list:
@@ -75,25 +93,23 @@ def get_waves_data(s, pin_list):
                 s.flushInput()
                 s.flushOutput()
                 wave = []
-                s.write([0x23])
-                '''
-                    if not started:
-                    if pos_pin < args.start_pos_pin or neg_pin < args.start_neg_pin or test_pin < args.start_test_pin:
-                        continue
-                    started = True
-                '''
+                s.write([0x25])
+                
                 for byte_n in xrange(2000):
                     point = s.read(size=2)
                     v = from_bytes(point)
                     Vvalue = float((v-2048)*0.00244140625)
                     wave.append(Vvalue)
+                
+                wave[0] = wave[1]
+                wave[-2] = wave[-1]
                 wave_data = {
                     'rate' : 80000,
                     'volt' : 1,
                     'wave' : wave
                 }
                 sample_data['pos' + str(pin_list.index(i) + 1) + '_neg' + str(pin_list.index(j) + 1) + '_test' + str(pin_list.index(k) + 1)] = wave_data
-
+    
     return sample_data
 
 def from_bytes (data, big_endian = False):

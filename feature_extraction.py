@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.fftpack
 import numpy as np
 from scipy.fftpack import fft, dct
+from util import smooth
 #from util import smooth
 
 def wave_ceptrum(numcep, waves, N, sample_rate):
@@ -42,7 +43,10 @@ def filterbank(filt_num, N, sample_rate=80000, low_freq=0, high_freq=None):
 
 def get_wave_feature(waves, sample_rate, N):
     #waves = smooth(waves)
+    features = []
     cep =  wave_ceptrum(26, waves, N, sample_rate)
+    # print cep
+    cep = cep[:6]
     features = np.concatenate((cep, np.diff(cep, n=1), np.diff(cep, n=2)), axis=0)
     #features = np.array([])
     #waves = smooth(waves)
@@ -52,7 +56,17 @@ def get_wave_feature(waves, sample_rate, N):
     features = np.append(features, np.var(waves))
     features = np.append(features, np.amax(waves))
     features = np.append(features, np.amin(waves))
-    features = np.append(features, np.median(waves))
+    # features = np.append(features, np.median(waves))
+
+    smooth_waves = smooth(waves)
+
+    features = np.append(features, np.mean(smooth_waves))
+    features = np.append(features, np.std(smooth_waves))
+    features = np.append(features, np.var(smooth_waves))
+    features = np.append(features, np.amax(smooth_waves))
+    features = np.append(features, np.amin(smooth_waves))
+    # features = np.append(features, np.median(smooth_waves))
+
     return features
 
 
