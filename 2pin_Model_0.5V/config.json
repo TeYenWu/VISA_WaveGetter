@@ -1,0 +1,1 @@
+{"feature_order": ["pos1_neg2_test1", "pos1_neg2_test2"], "label_list": ["breakage", "capacitor", "inductance", "resistence", "wire"]}
